@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext"
 import { Navigate } from "react-router-dom"
 import { Loader2 } from "lucide-react"
+import { isDemoMode } from '@/integrations/supabase/client'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -15,6 +16,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
+  }
+
+  // En mode démo, toujours autoriser l'accès
+  if (isDemoMode) {
+    return <>{children}</>
   }
 
   if (!user) {

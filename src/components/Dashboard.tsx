@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isDemoMode } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, AlertCircle } from "lucide-react";
 import { InvoiceGallery } from "./InvoiceGallery";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ExportSection } from "./ExportSection";
@@ -13,6 +13,7 @@ import { InvoiceChart } from "./dashboard/InvoiceChart";
 import { CategoryChart } from "./dashboard/CategoryChart";
 import { RecentActivity } from "./dashboard/RecentActivity";
 import { useRealTimeInvoices } from "@/hooks/useRealTimeInvoices";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Invoice {
   id: number;
@@ -92,6 +93,15 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        {isDemoMode && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+            <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <AlertDescription className="text-orange-800 dark:text-orange-200">
+              <strong>Mode démo :</strong> Connectez Supabase pour accéder aux fonctionnalités complètes (authentification, stockage, upload de factures).
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -103,7 +113,7 @@ export const Dashboard = () => {
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" disabled={isDemoMode}>
                 <Upload className="h-5 w-5" />
                 Uploader une facture
               </Button>

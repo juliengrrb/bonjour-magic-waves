@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, isDemoMode } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 
@@ -82,10 +82,55 @@ export const useRealTimeInvoices = () => {
   }
 
   const loadInvoices = async () => {
-    if (!user) return
+    if (!user && !isDemoMode) return
 
     try {
       setIsLoading(true)
+      
+      if (isDemoMode) {
+        // Données factices pour le mode démo
+        const demoData: Invoice[] = [
+          {
+            id: 1,
+            created_at: new Date().toISOString(),
+            user_id: 'demo-user',
+            image_url: 'demo-image-1',
+            date: '2024-01-15',
+            vendeur: 'Carrefour',
+            tva_total: 4.2,
+            montant_ttc: 25.50,
+            mode_paiement: 'Carte',
+            categorie: 'Alimentation',
+            numero_facture: 'FAC001',
+            articles_description: 'Pain, Lait, Œufs',
+            articles_quantite: 3,
+            articles_totale: 25.50
+          },
+          {
+            id: 2,
+            created_at: new Date().toISOString(),
+            user_id: 'demo-user',
+            image_url: 'demo-image-2',
+            date: '2024-01-10',
+            vendeur: 'Amazon',
+            tva_total: 8.0,
+            montant_ttc: 48.00,
+            mode_paiement: 'Carte',
+            categorie: 'Électronique',
+            numero_facture: 'AMZ002',
+            articles_description: 'Câble USB, Chargeur',
+            articles_quantite: 2,
+            articles_totale: 48.00
+          }
+        ]
+        
+        setInvoices(demoData)
+        const grouped = groupInvoicesByImage(demoData)
+        setGroupedInvoices(grouped)
+        setIsLoading(false)
+        return
+      }
+      
       const { data, error } = await supabase
         .from('invoices')
         .select('*')
@@ -110,9 +155,17 @@ export const useRealTimeInvoices = () => {
   }
 
   const deleteInvoice = async (imageUrl: string) => {
-    if (!user) return
+    if (!user && !isDemoMode) return
 
     try {
+      if (isDemoMode) {
+        toast({
+          title: "Mode démo",
+          description: "Connectez Supabase pour supprimer des factures."
+        })
+        return
+      }
+      
       const { error } = await supabase
         .from('invoices')
         .delete()
@@ -193,9 +246,11 @@ export const useRealTimeInvoices = () => {
   }
 
   useEffect(() => {
-    if (!user) return
+    if (!user && !isDemoMode) return
 
     loadInvoices()
+
+    if (isDemoMode) return // Pas de real-time en mode démo
 
     // Set up real-time subscription
     const channel = supabase

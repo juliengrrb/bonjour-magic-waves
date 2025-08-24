@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, isDemoMode } from '@/integrations/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -31,6 +31,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isDemoMode) {
+      // Mode démo sans authentification
+      setSession(null)
+      setUser(null)
+      setLoading(false)
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -51,6 +59,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [])
 
   const signUp = async (email: string, password: string, username: string) => {
+    if (isDemoMode) {
+      return { error: new Error('Connectez Supabase pour utiliser l\'authentification') }
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -65,6 +76,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (isDemoMode) {
+      return { error: new Error('Connectez Supabase pour utiliser l\'authentification') }
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -73,6 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }
 
   const signOut = async () => {
+    if (isDemoMode) return
     await supabase.auth.signOut()
   }
 
